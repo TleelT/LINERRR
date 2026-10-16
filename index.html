@@ -365,20 +365,28 @@
             loadAccounts();
         };
 
-        // Load Accounts from LocalStorage
+        // โหลดข้อมูลจากไฟล์ data.json บน GitHub เพื่อให้ทุกคนเห็นข้อมูลชุดเดียวกัน
         function loadAccounts() {
-            const savedData = localStorage.getItem('linerangers_accounts_tle_v3');
-            if (savedData) {
-                try {
-                    accounts = JSON.parse(savedData);
-                } catch (e) {
-                    console.error('Error parsing localStorage:', e);
+            fetch('data.json?v=' + new Date().getTime())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('ไม่พบไฟล์ data.json');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        accounts = data;
+                    } else {
+                        accounts = [];
+                    }
+                    renderAccounts();
+                })
+                .catch(e => {
+                    console.error('Error loading data.json:', e);
                     accounts = [];
-                }
-            } else {
-                accounts = [];
-            }
-            renderAccounts();
+                    renderAccounts();
+                });
         }
 
         // Save to LocalStorage with Quota Handling
