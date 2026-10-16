@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการรหัส LINE Rangers - คุณเติ้ล</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font - Kanit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lr: {
+                            yellow: '#FFC800',
+                            orange: '#FF8A00',
+                            brown: '#3D2514',
+                            darkbrown: '#23140A',
+                            red: '#E02B2B',
+                            bg: '#1A110B',
+                            card: '#2A1C12',
+                            gold: '#FFD700',
+                            green: '#28A745',
+                            ruby: '#FF2E63'
+                        }
+                    },
+                    fontFamily: {
+                        kanit: ['Kanit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #1A110B;
+            background-image: radial-gradient(#3D2514 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #F3F4F6;
+        }
+
+        .lr-gradient-btn {
+            background: linear-gradient(180deg, #FFD700 0%, #FF8A00 100%);
+            box-shadow: 0 4px 0 #B35900, inset 0 2px 0 rgba(255, 255, 255, 0.4);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .lr-gradient-btn:hover {
+            background: linear-gradient(180deg, #FFE033 0%, #FFA01A 100%);
+            transform: translateY(-1px);
+        }
+
+        .lr-gradient-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #B35900;
+        }
+
+        .lr-card {
+            background: linear-gradient(145deg, #2A1C12 0%, #1F140C 100%);
+            border: 2px solid #52341E;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1A110B;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #FF8A00;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FFC800;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-lr-darkbrown border-b-4 border-lr-orange sticky top-0 z-30 shadow-2xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-4">
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-12 h-12 bg-lr-yellow rounded-2xl flex items-center justify-center border-2 border-white shadow-md transform rotate-2 overflow-hidden p-1">
+                    <div
+                        class="w-full h-full bg-lr-darkbrown rounded-xl flex items-center justify-center text-lr-yellow border border-lr-orange">
+                        <i class="fa-solid fa-gamepad text-2xl text-lr-yellow"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-lr-yellow tracking-wide flex items-center gap-2">
+                        LINE Rangers <span
+                            class="text-xs bg-lr-orange text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider font-semibold">Manager</span>
+                    </h1>
+                    <p class="text-xs text-gray-300">คลังบันทึกไอดีเกม LINE Rangers ส่วนตัวของคุณเติ้ล (MacBook Air M4
+                        Optimized)</p>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex items-center gap-3">
+                <div
+                    class="hidden sm:flex bg-lr-brown border border-lr-orange/40 rounded-xl px-3 py-1.5 items-center gap-2 text-sm">
+                    <i class="fa-solid fa-users text-lr-yellow"></i>
+                    <span>รหัสทั้งหมด: <strong id="total-count" class="text-lr-yellow">0</strong> รหัส</span>
+                </div>
+
+                <!-- Export/Import Buttons -->
+                <button onclick="exportData()" title="สำรองข้อมูลเป็นไฟล์ JSON"
+                    class="bg-lr-brown hover:bg-lr-card border border-lr-orange/50 text-lr-yellow p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="hidden md:inline">ส่งออก</span>
+                </button>
+
+                <label title="นำเข้าข้อมูลจากไฟล์ JSON"
+                    class="bg-lr-brown hover:bg-lr-card border border-lr-orange/50 text-lr-yellow p-2.5 rounded-xl transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
+                    <i class="fa-solid fa-upload"></i>
+                    <span class="hidden md:inline">นำเข้า</span>
+                    <input type="file" id="import-file" accept=".json" onchange="importData(event)" class="hidden">
+                </label>
+
+                <button onclick="openModal()"
+                    class="lr-gradient-btn text-lr-brown font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer text-sm">
+                    <i class="fa-solid fa-plus-circle text-lg"></i>
+                    <span>เพิ่มรหัสใหม่</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+        <!-- Search, Filter & Sort Bar -->
+        <div
+            class="mb-8 bg-lr-card p-4 rounded-2xl border border-lr-brown/80 flex flex-col md:flex-row gap-4 justify-between items-center shadow-lg">
+            <!-- Search Box -->
+            <div class="relative w-full md:w-96">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="search-input" oninput="filterAccounts()"
+                    placeholder="ค้นหาชื่อรหัส (เช่น เติ้ล 01) หรือ ชื่อตัวละคร..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-lr-darkbrown border border-lr-brown rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-lr-yellow text-sm transition">
+            </div>
+
+            <!-- Sort Controls & Info -->
+            <div
+                class="flex flex-wrap items-center justify-between w-full md:w-auto gap-4 text-xs sm:text-sm text-gray-300">
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-gray-400">เรียงตาม:</label>
+                    <select id="sort-select" onchange="filterAccounts()"
+                        class="bg-lr-darkbrown border border-lr-brown text-lr-yellow text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-lr-yellow">
+                        <option value="custom">ลำดับที่คุณเติ้ลจัดเอง (กดปุ่มสลับซ้าย-ขวา)</option>
+                        <option value="newest">อัปเดตล่าสุด</option>
+                        <option value="oldest">เก่าสุด</option>
+                        <option value="name">ชื่อรหัส (ก-ฮ)</option>
+                    </select>
+                </div>
+
+                <span id="showing-count-text"
+                    class="text-xs text-lr-yellow bg-lr-darkbrown px-3 py-1.5 rounded-lg border border-lr-brown">กำลังแสดง
+                    0 รหัส</span>
+            </div>
+        </div>
+
+        <!-- Accounts Grid -->
+        <div id="accounts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards generated dynamically via JavaScript -->
+        </div>
+
+        <!-- Empty State (Shows when no accounts found) -->
+        <div id="empty-state"
+            class="hidden text-center py-20 bg-lr-card/40 rounded-3xl border-2 border-dashed border-lr-brown/60 my-6 px-4">
+            <div
+                class="w-24 h-24 mx-auto bg-lr-darkbrown/80 rounded-full flex items-center justify-center text-5xl text-lr-yellow border-2 border-lr-orange/40 mb-4 shadow-xl">
+                <i class="fa-solid fa-folder-plus"></i>
+            </div>
+            <h3 class="text-xl font-bold text-lr-yellow mb-2">ยังไม่มีข้อมูลรหัสเกมของคุณเติ้ล</h3>
+            <p class="text-sm text-gray-300 max-w-md mx-auto mb-6">เริ่มต้นสร้างคลังรหัสของคุณเติ้ล
+                อัปโหลดสกรีนช็อตหน้าทีมจาก MacBook Air M4 เพื่อจัดระเบียบและจำง่ายได้ทันที!</p>
+            <button onclick="openModal()"
+                class="lr-gradient-btn text-lr-brown font-bold px-6 py-3 rounded-2xl inline-flex items-center gap-2 text-base cursor-pointer">
+                <i class="fa-solid fa-plus-circle text-xl"></i>
+                <span>เพิ่มรหัสแรกของคุณเติ้ล</span>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-lr-darkbrown border-t border-lr-brown/50 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-400">
+            LINE Rangers Account Manager &copy; 2026 - ระบบบันทึกรหัสเกมส่วนตัวของคุณเติ้ล
+        </div>
+    </footer>
+
+    <!-- ADD / EDIT ACCOUNT MODAL -->
+    <div id="account-modal"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
+        <div
+            class="bg-lr-card border-2 border-lr-orange rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl flex flex-col">
+
+            <!-- Modal Header -->
+            <div
+                class="px-6 py-4 bg-lr-darkbrown border-b border-lr-brown flex justify-between items-center sticky top-0 z-10">
+                <h2 id="modal-title" class="text-xl font-bold text-lr-yellow flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>เพิ่มรหัสใหม่</span>
+                </h2>
+                <button onclick="closeModal()"
+                    class="w-8 h-8 rounded-full bg-lr-brown text-gray-300 hover:text-white hover:bg-lr-red transition flex items-center justify-center cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <form id="account-form" onsubmit="saveAccount(event)" class="p-6 space-y-4">
+                <input type="hidden" id="account-id">
+
+                <!-- Basic Info Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">ชื่อรหัส <span
+                                class="text-lr-red">*</span></label>
+                        <input type="text" id="acc-name" required placeholder="เช่น เติ้ล 01"
+                            class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">เลเวล / ยศ</label>
+                        <input type="text" id="acc-level" placeholder="เช่น ป้ายเหลือง 87"
+                            class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-lr-ruby uppercase mb-1"><i
+                                class="fa-solid fa-gem mr-1"></i>รูบี้ (Ruby)</label>
+                        <input type="number" id="acc-ruby" placeholder="เช่น 1645" min="0"
+                            class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-sky-400 uppercase mb-1"><i
+                                class="fa-solid fa-ticket mr-1"></i>ตั๋ว Gacha</label>
+                        <input type="number" id="acc-ticket" placeholder="เช่น 50" min="0"
+                            class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
+                    </div>
+                </div>
+
+                <!-- Team Screenshot Upload -->
+                <div>
+                    <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">ภาพสกรีนช็อตทีม ( Mac /
+                        iPhone / iPad )</label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <label
+                            class="flex-1 cursor-pointer bg-lr-darkbrown border-2 border-dashed border-lr-brown hover:border-lr-yellow rounded-xl p-3 flex flex-col items-center justify-center transition text-center">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-lr-yellow mb-1"></i>
+                            <span id="file-upload-label" class="text-xs text-gray-300 font-medium">คลิกอัปโหลดสกรีนช็อต
+                                (ระบบจะบีบอัดภาพให้อัตโนมัติ)</span>
+                            <input type="file" id="acc-image-file" accept="image/*"
+                                onchange="handleImageFileSelect(event)" class="hidden">
+                        </label>
+                        <div class="sm:w-1/3 flex flex-col justify-center">
+                            <span class="text-[11px] text-gray-400 mb-1">หรือ วาง URL รูปภาพ:</span>
+                            <input type="url" id="acc-image-url" oninput="handleImageUrlInput()"
+                                placeholder="https://..."
+                                class="w-full px-3 py-1.5 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-xs">
+                        </div>
+                    </div>
+                    <!-- Image Preview -->
+                    <div id="image-preview-container"
+                        class="mt-2 relative h-36 bg-black rounded-xl overflow-hidden border border-lr-brown flex items-center justify-center">
+                        <img id="image-preview" src="" class="h-full w-full object-contain hidden" alt="ตัวอย่างรูปภาพ">
+                        <div id="image-preview-placeholder" class="text-xs text-gray-500 flex items-center gap-2">
+                            <i class="fa-regular fa-image text-lg"></i> ยังไม่ได้เลือกรูปภาพ
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rangers and Tags -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">เรนเจอร์ตัวหลักในทีม
+                            (ขั้นด้วยเครื่องหมาย ,)</label>
+                        <input type="text" id="acc-rangers" placeholder="เช่น บราวน์เทพเจ้า, แซลลี่เวทมนตร์"
+                            class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">แท็กหมวดหมู่
+                            (ขั้นด้วยเครื่องหมาย ,)</label>
+                        <input type="text" id="acc-tags" placeholder="เช่น รหัสหลัก, รหัสฟาร์ม, PvP Top 100"
+                            class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
+                    </div>
+                </div>
+
+                <!-- Notes Row -->
+                <div>
+                    <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">บันทึกเพิ่มเติม</label>
+                    <textarea id="acc-notes" rows="2" placeholder="เช่น LINE ID / รหัสผ่าน หรือหมายเหตุเพิ่มเติม..."
+                        class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm resize-none"></textarea>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="pt-4 border-t border-lr-brown/60 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal()"
+                        class="px-5 py-2 rounded-xl bg-lr-brown text-gray-300 hover:bg-gray-700 text-sm transition cursor-pointer">
+                        ยกเลิก
+                    </button>
+                    <button type="submit"
+                        class="lr-gradient-btn text-lr-brown font-bold px-6 py-2 rounded-xl text-sm flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>บันทึกรหัส</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ENLARGE IMAGE MODAL (LIGHTBOX) -->
+    <div id="image-modal"
+        class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 hidden"
+        onclick="closeImageModal()">
+        <div class="relative max-w-6xl w-full flex flex-col items-center">
+            <!-- Close Button -->
+            <button onclick="closeImageModal()"
+                class="absolute -top-10 right-0 text-white text-2xl hover:text-lr-yellow transition flex items-center gap-1 font-bold cursor-pointer">
+                <i class="fa-solid fa-xmark"></i> ปิดภาพ
+            </button>
+            <img id="enlarged-image" src="" alt="รูปภาพขยาย"
+                class="max-h-[85vh] max-w-full rounded-2xl border-2 border-lr-yellow shadow-2xl object-contain"
+                onclick="event.stopPropagation()">
+            <div id="enlarged-title"
+                class="mt-3 text-center text-lr-yellow font-bold text-lg bg-lr-darkbrown px-6 py-2 rounded-full border border-lr-orange/50 shadow-lg">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Box -->
+    <div id="toast"
+        class="fixed bottom-5 right-5 z-50 bg-lr-darkbrown border-2 border-lr-yellow text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-lr-yellow text-xl"></i>
+        <span id="toast-message" class="text-sm font-medium">ทำรายการสำเร็จ</span>
+    </div>
+
+    <script>
+        // State Management
+        let accounts = [];
+        let currentBase64Image = '';
+
+        // Initialize App
+        window.onload = function () {
+            loadAccounts();
+        };
+
+        // Load Accounts from LocalStorage
+        function loadAccounts() {
+            const savedData = localStorage.getItem('linerangers_accounts_tle_v3');
+            if (savedData) {
+                try {
+                    accounts = JSON.parse(savedData);
+                } catch (e) {
+                    console.error('Error parsing localStorage:', e);
+                    accounts = [];
+                }
+            } else {
+                accounts = [];
+            }
+            renderAccounts();
+        }
+
+        // Save to LocalStorage with Quota Handling
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('linerangers_accounts_tle_v3', JSON.stringify(accounts));
+                return true;
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    showToast('หน่วยความจำเต็ม! รูปภาพไฟล์ใหญ่เกินไป กรุณาย่อขนาดหรือเลือกภาพที่มีขนาดเล็กลง', true);
+                } else {
+                    showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', true);
+                }
+                return false;
+            }
+        }
+
+        // Render Cards in Grid
+        function renderAccounts(filteredData = null) {
+            const isFiltering = filteredData !== null;
+            const listToRender = filteredData || accounts;
+            const grid = document.getElementById('accounts-grid');
+            const emptyState = document.getElementById('empty-state');
+            const totalCountEl = document.getElementById('total-count');
+            const showingCountText = document.getElementById('showing-count-text');
+            const currentSort = document.getElementById('sort-select').value;
+
+            totalCountEl.innerText = accounts.length;
+            showingCountText.innerText = `กำลังแสดง ${listToRender.length} จาก ${accounts.length} รหัส`;
+
+            grid.innerHTML = '';
+
+            if (listToRender.length === 0) {
+                emptyState.classList.remove('hidden');
+                grid.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.classList.remove('hidden');
+
+            const isCustomSort = currentSort === 'custom' && !isFiltering;
+
+            listToRender.forEach((acc, index) => {
+                const globalIndex = accounts.findIndex(a => a.id === acc.id);
+
+                const card = document.createElement('div');
+                card.className = 'lr-card rounded-2xl overflow-hidden flex flex-col justify-between border border-lr-brown/80 hover:border-lr-yellow transition duration-300 group';
+
+                const rangerTagsHtml = acc.rangers && acc.rangers.length > 0
+                    ? acc.rangers.map(r => `<span class="inline-block bg-lr-brown/90 text-lr-yellow border border-lr-orange/40 text-[11px] px-2 py-0.5 rounded-md font-medium mr-1 mb-1">🛡️ ${escapeHtml(r.trim())}</span>`).join('')
+                    : '<span class="text-xs text-gray-500 italic">ไม่ได้ระบุตัวละคร</span>';
+
+                const categoryTagsHtml = acc.tags && acc.tags.length > 0
+                    ? acc.tags.map(t => `<span class="inline-block bg-lr-orange/20 text-lr-orange border border-lr-orange/50 text-[10px] px-2 py-0.5 rounded-full font-semibold mr-1 mb-1">#${escapeHtml(t.trim())}</span>`).join('')
+                    : '';
+
+                const imageUrl = acc.image || 'https://placehold.co/800x450/23140A/FFC800?text=LINE+Rangers+No+Screenshot';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="bg-lr-darkbrown px-4 py-3 border-b border-lr-brown/60 flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-lr-yellow inline-block animate-pulse"></span>
+                                <h3 class="font-bold text-lg text-lr-yellow tracking-wide">${escapeHtml(acc.name)}</h3>
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                                ${acc.ruby ? `<span class="text-xs font-bold bg-lr-ruby/20 text-lr-ruby px-2 py-0.5 rounded-lg border border-lr-ruby/40 flex items-center gap-1" title="รูบี้"><i class="fa-solid fa-gem"></i> ${escapeHtml(acc.ruby)}</span>` : ''}
+                                ${acc.ticket ? `<span class="text-xs font-bold bg-sky-950/60 text-sky-400 px-2 py-0.5 rounded-lg border border-sky-500/40 flex items-center gap-1" title="ตั๋ว Gacha"><i class="fa-solid fa-ticket"></i> ${escapeHtml(acc.ticket)}</span>` : ''}
+                                ${acc.level ? `<span class="text-xs font-bold bg-lr-orange text-white px-2 py-0.5 rounded-lg border border-yellow-300/40">${escapeHtml(acc.level)}</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="relative bg-black group-hover:opacity-95 transition cursor-pointer overflow-hidden h-52 flex items-center justify-center border-b border-lr-brown/40" onclick="openImageModal('${escapeHtml(imageUrl)}', '${escapeHtml(acc.name)}')">
+                            <img src="${imageUrl}" alt="${escapeHtml(acc.name)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/800x450/23140A/FFC800?text=Image+Load+Error'">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+                            
+                            <div class="absolute bottom-2 right-2 bg-black/70 text-lr-yellow px-2.5 py-1 rounded-lg text-xs flex items-center gap-1 border border-lr-brown">
+                                <i class="fa-solid fa-expand"></i> คลิกขยายรูปหน้าทีม
+                            </div>
+                        </div>
+
+                        <div class="p-4 space-y-3">
+                            ${categoryTagsHtml ? `<div class="flex flex-wrap">${categoryTagsHtml}</div>` : ''}
+
+                            <div>
+                                <label class="text-[11px] font-semibold text-gray-400 block mb-1">เรนเจอร์หน้าทีม:</label>
+                                <div class="flex flex-wrap">
+                                    ${rangerTagsHtml}
+                                </div>
+                            </div>
+
+                            ${acc.notes ? `
+                            <div class="bg-lr-darkbrown/80 p-2.5 rounded-xl border border-lr-brown/40">
+                                <label class="text-[11px] font-semibold text-gray-400 block mb-0.5"><i class="fa-regular fa-note-sticky text-lr-yellow mr-1"></i>บันทึก:</label>
+                                <p class="text-xs text-gray-300 leading-relaxed whitespace-pre-line">${escapeHtml(acc.notes)}</p>
+                            </div>
+                            ` : ''}
+
+                            <div class="bg-lr-darkbrown/90 p-2.5 rounded-xl border border-lr-brown/50 text-[11px] text-gray-300 space-y-1">
+                                <div class="flex items-center justify-between text-lr-yellow/90">
+                                    <span class="flex items-center gap-1"><i class="fa-solid fa-clock-rotate-left"></i> อัปเดตล่าสุด:</span>
+                                    <span class="font-medium">${formatThaiDateTime(acc.updatedAt)}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-gray-400">
+                                    <span class="flex items-center gap-1"><i class="fa-regular fa-calendar-plus"></i> วันที่อัพรหัส:</span>
+                                    <span>${formatThaiDateTime(acc.createdAt || acc.updatedAt)}</span>
+                                </div>
+                                <div class="pt-1 mt-1 border-t border-lr-brown/40 text-right">
+                                    <span class="inline-block bg-lr-brown/80 text-lr-yellow px-2 py-0.5 rounded text-[10px] border border-lr-orange/30">
+                                        <i class="fa-solid fa-hourglass-half mr-1"></i>${getRelativeTimeString(acc.createdAt || acc.updatedAt)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-4 py-3 bg-lr-darkbrown/90 border-t border-lr-brown/50 flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <button onclick="copyAccountInfo('${acc.id}')" title="คัดลอกรายละเอียดรหัส" class="text-xs text-gray-400 hover:text-lr-yellow transition flex items-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-copy"></i> คัดลอกข้อความ
+                            </button>
+                            <div class="flex items-center gap-2">
+                                <button onclick="editAccount('${acc.id}')" class="px-3 py-1.5 bg-lr-brown hover:bg-lr-orange hover:text-white text-gray-200 rounded-lg text-xs font-medium transition flex items-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-pen-to-square"></i> แก้ไข
+                                </button>
+                                <button onclick="deleteAccount('${acc.id}')" class="px-3 py-1.5 bg-red-950/60 hover:bg-lr-red text-red-300 hover:text-white rounded-lg text-xs font-medium transition flex items-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-trash-can"></i> ลบ
+                                </button>
+                            </div>
+                        </div>
+
+                        ${isCustomSort ? `
+                        <div class="flex justify-between items-center pt-2 border-t border-lr-brown/40 text-xs">
+                            <span class="text-[10px] text-gray-400">ตำแหน่งที่: <strong class="text-lr-yellow">${globalIndex + 1}</strong></span>
+                            <div class="flex items-center gap-1">
+                                <button onclick="moveAccountPosition(${globalIndex}, -1)" ${globalIndex === 0 ? 'disabled class="opacity-30 cursor-not-allowed px-2.5 py-1 bg-lr-brown rounded text-gray-500"' : 'class="px-2.5 py-1 bg-lr-brown hover:bg-lr-orange hover:text-white text-lr-yellow rounded transition cursor-pointer font-medium"'} title="ย้ายไปซ้าย (ลำดับก่อนหน้า)">
+                                    <i class="fa-solid fa-arrow-left mr-1"></i> ซ้าย
+                                </button>
+                                <button onclick="moveAccountPosition(${globalIndex}, 1)" ${globalIndex === accounts.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed px-2.5 py-1 bg-lr-brown rounded text-gray-500"' : 'class="px-2.5 py-1 bg-lr-brown hover:bg-lr-orange hover:text-white text-lr-yellow rounded transition cursor-pointer font-medium"'} title="ย้ายไปขวา (ลำดับถัดไป)">
+                                    ขวา <i class="fa-solid fa-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // MOVE POSITION VIA BUTTONS
+        function moveAccountPosition(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= accounts.length) return;
+
+            const temp = accounts[index];
+            accounts[index] = accounts[targetIndex];
+            accounts[targetIndex] = temp;
+
+            saveToLocalStorage();
+            filterAccounts();
+            showToast(`สลับตำแหน่งเรียบร้อยแล้วครับ`);
+        }
+
+        // Filter & Search & Sort Accounts
+        function filterAccounts() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            const sortBy = document.getElementById('sort-select').value;
+
+            let result = [...accounts];
+
+            if (query) {
+                result = result.filter(acc => {
+                    const nameMatch = acc.name.toLowerCase().includes(query);
+                    const notesMatch = acc.notes && acc.notes.toLowerCase().includes(query);
+                    const rangersMatch = acc.rangers && acc.rangers.some(r => r.toLowerCase().includes(query));
+                    const tagsMatch = acc.tags && acc.tags.some(t => t.toLowerCase().includes(query));
+                    return nameMatch || notesMatch || rangersMatch || tagsMatch;
+                });
+            }
+
+            if (sortBy === 'newest') result.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+            if (sortBy === 'oldest') result.sort((a, b) => new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0));
+            if (sortBy === 'name') result.sort((a, b) => a.name.localeCompare(b.name, 'th'));
+
+            renderAccounts(query || sortBy !== 'custom' ? result : null);
+        }
+
+        // Open Modal (Add / Edit)
+        function openModal(editId = null) {
+            const modal = document.getElementById('account-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const form = document.getElementById('account-form');
+
+            resetImagePreview();
+
+            if (editId) {
+                const acc = accounts.find(a => a.id === editId);
+                if (!acc) return;
+
+                modalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> <span>แก้ไขรหัส: ${escapeHtml(acc.name)}</span>`;
+                document.getElementById('account-id').value = acc.id;
+                document.getElementById('acc-name').value = acc.name || '';
+                document.getElementById('acc-level').value = acc.level || '';
+                document.getElementById('acc-ruby').value = acc.ruby || '';
+                document.getElementById('acc-ticket').value = acc.ticket || '';
+                document.getElementById('acc-rangers').value = (acc.rangers || []).join(', ');
+                document.getElementById('acc-tags').value = (acc.tags || []).join(', ');
+                document.getElementById('acc-notes').value = acc.notes || '';
+
+                if (acc.image) {
+                    if (acc.image.startsWith('data:image')) {
+                        currentBase64Image = acc.image;
+                        setImagePreviewSrc(acc.image);
+                    } else {
+                        document.getElementById('acc-image-url').value = acc.image;
+                        setImagePreviewSrc(acc.image);
+                    }
+                }
+            } else {
+                modalTitle.innerHTML = `<i class="fa-solid fa-user-plus"></i> <span>เพิ่มรหัสใหม่</span>`;
+                form.reset();
+                document.getElementById('account-id').value = '';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        // Close Modal
+        function closeModal() {
+            document.getElementById('account-modal').classList.add('hidden');
+            document.getElementById('account-form').reset();
+            resetImagePreview();
+        }
+
+        // MACBOOK AIR M4 AUTO-COMPRESSION SCREENSHOT HANDLER
+        function handleImageFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('file-upload-label').innerText = 'กำลังบีบอัดรูปภาพ...';
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    const MAX_WIDTH = 1280;
+                    const MAX_HEIGHT = 720;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    currentBase64Image = canvas.toDataURL('image/jpeg', 0.80);
+                    document.getElementById('acc-image-url').value = '';
+                    document.getElementById('file-upload-label').innerText = file.name + ' (บีบอัดเรียบร้อย)';
+                    setImagePreviewSrc(currentBase64Image);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Handle Image URL Input
+        function handleImageUrlInput() {
+            const url = document.getElementById('acc-image-url').value.trim();
+            currentBase64Image = '';
+            document.getElementById('file-upload-label').innerText = 'คลิกเพื่ออัปโหลดสกรีนช็อตหน้าทีม (ย่ออัตโนมัติ)';
+
+            if (url) {
+                setImagePreviewSrc(url);
+            } else {
+                resetImagePreview();
+            }
+        }
+
+        function setImagePreviewSrc(src) {
+            const imgEl = document.getElementById('image-preview');
+            const placeholder = document.getElementById('image-preview-placeholder');
+            imgEl.src = src;
+            imgEl.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+        }
+
+        function resetImagePreview() {
+            currentBase64Image = '';
+            const imgEl = document.getElementById('image-preview');
+            const placeholder = document.getElementById('image-preview-placeholder');
+            imgEl.src = '';
+            imgEl.classList.add('hidden');
+            placeholder.classList.remove('hidden');
+            document.getElementById('file-upload-label').innerText = 'คลิกเพื่ออัปโหลดสกรีนช็อตหน้าทีม (ย่ออัตโนมัติ)';
+        }
+
+        // Save Account Form Submit
+        function saveAccount(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('account-id').value;
+            const name = document.getElementById('acc-name').value.trim();
+            const level = document.getElementById('acc-level').value.trim();
+            const ruby = document.getElementById('acc-ruby').value.trim();
+            const ticket = document.getElementById('acc-ticket').value.trim();
+            const urlImage = document.getElementById('acc-image-url').value.trim();
+            const rangersRaw = document.getElementById('acc-rangers').value.trim();
+            const tagsRaw = document.getElementById('acc-tags').value.trim();
+            const notes = document.getElementById('acc-notes').value.trim();
+
+            if (!name) {
+                showToast('กรุณาระบุชื่อรหัส', true);
+                return;
+            }
+
+            let finalImage = currentBase64Image || urlImage || '';
+
+            const rangersList = rangersRaw ? rangersRaw.split(',').map(item => item.trim()).filter(Boolean) : [];
+            const tagsList = tagsRaw ? tagsRaw.split(',').map(item => item.trim()).filter(Boolean) : [];
+            const nowIso = new Date().toISOString();
+
+            if (id) {
+                const index = accounts.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    accounts[index] = {
+                        ...accounts[index],
+                        name,
+                        level,
+                        ruby,
+                        ticket,
+                        image: finalImage || accounts[index].image,
+                        rangers: rangersList,
+                        tags: tagsList,
+                        notes,
+                        updatedAt: nowIso,
+                        createdAt: accounts[index].createdAt || accounts[index].updatedAt || nowIso
+                    };
+                    if (saveToLocalStorage()) {
+                        showToast(`แก้ไขรหัส "${name}" เรียบร้อยแล้ว`);
+                    }
+                }
+            } else {
+                const newAccount = {
+                    id: Date.now().toString(),
+                    name,
+                    level,
+                    ruby,
+                    ticket,
+                    image: finalImage,
+                    rangers: rangersList,
+                    tags: tagsList,
+                    notes,
+                    createdAt: nowIso,
+                    updatedAt: nowIso
+                };
+                accounts.unshift(newAccount);
+                if (saveToLocalStorage()) {
+                    showToast(`เพิ่มรหัส "${name}" สำเร็จแล้ว`);
+                }
+            }
+
+            filterAccounts();
+            closeModal();
+        }
+
+        // Edit Account Helper
+        function editAccount(id) {
+            openModal(id);
+        }
+
+        // Delete Account
+        function deleteAccount(id) {
+            const acc = accounts.find(a => a.id === id);
+            if (!acc) return;
+
+            if (confirm(`คุณเติ้ลต้องการลบรหัส "${acc.name}" ใช่หรือไม่?`)) {
+                accounts = accounts.filter(a => a.id !== id);
+                saveToLocalStorage();
+                filterAccounts();
+                showToast(`ลบรหัส "${acc.name}" แล้ว`);
+            }
+        }
+
+        // Copy Account Info to Clipboard
+        function copyAccountInfo(id) {
+            const acc = accounts.find(a => a.id === id);
+            if (!acc) return;
+
+            const textToCopy = `🎮 LINE Rangers - รหัส: ${acc.name}
+📊 เลเวล/ยศ: ${acc.level || '-'} | 💎 รูบี้: ${acc.ruby || '-'} | 🎫 ตั๋ว Gacha: ${acc.ticket || '-'}
+🛡️ ตัวละครในทีม: ${acc.rangers ? acc.rangers.join(', ') : '-'}
+📝 บันทึก: ${acc.notes || '-'}
+🕒 อัปเดตล่าสุด: ${formatThaiDateTime(acc.updatedAt)}`;
+
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = textToCopy;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            showToast(`คัดลอกรายละเอียด "${acc.name}" แล้ว`);
+        }
+
+        // Format Date Time in Thai
+        function formatThaiDateTime(isoString) {
+            if (!isoString) return '-';
+            const date = new Date(isoString);
+            if (isNaN(date.getTime())) return '-';
+
+            const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const day = date.getDate();
+            const month = months[date.getMonth()];
+            const year = date.getFullYear() + 543;
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            return `${day} ${month} ${year} ${hours}:${minutes} น.`;
+        }
+
+        // Relative Time Calculator
+        function getRelativeTimeString(isoString) {
+            if (!isoString) return '';
+            const past = new Date(isoString);
+            const now = new Date();
+            const diffMs = now - past;
+            if (diffMs < 0) return 'เพิ่งลงเมื่อสักครู่';
+
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            const diffMonth = Math.floor(diffDay / 30);
+            const diffYear = Math.floor(diffDay / 365);
+
+            if (diffMin < 1) return 'เมื่อสักครู่นี้';
+            if (diffMin < 60) return `ผ่านมา ${diffMin} นาที`;
+            if (diffHour < 24) return `ผ่านมา ${diffHour} ชั่วโมง`;
+            if (diffDay < 30) return `สร้าง/ปั้นมาร่วม ${diffDay} วัน`;
+            if (diffMonth < 12) return `สร้าง/ปั้นมาร่วม ${diffMonth} เดือน (${diffDay} วัน)`;
+            return `สร้าง/ปั้นมาร่วม ${diffYear} ปี (${diffMonth} เดือน)`;
+        }
+
+        // Export Backup JSON Data
+        function exportData() {
+            if (accounts.length === 0) {
+                showToast('ยังไม่มีข้อมูลรหัสให้ส่งออก', true);
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(accounts, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `LINE_Rangers_Khun_Tle_Backup_${new Date().toISOString().slice(0, 10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('ส่งออกไฟล์สำรองข้อมูลเรียบร้อยแล้ว');
+        }
+
+        // Import Backup JSON Data
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const importedAccounts = JSON.parse(e.target.result);
+                    if (Array.isArray(importedAccounts)) {
+                        accounts = importedAccounts;
+                        saveToLocalStorage();
+                        filterAccounts();
+                        showToast(`นำเข้าข้อมูลจำนวน ${importedAccounts.length} รหัสสำเร็จแล้ว`);
+                    } else {
+                        showToast('รูปแบบไฟล์ไม่ถูกต้อง', true);
+                    }
+                } catch (err) {
+                    showToast('เกิดข้อผิดพลาดในการอ่านไฟล์', true);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Lightbox Modal Functions
+        function openImageModal(imgSrc, title) {
+            if (!imgSrc) return;
+            const modal = document.getElementById('image-modal');
+            const img = document.getElementById('enlarged-image');
+            const titleEl = document.getElementById('enlarged-title');
+
+            img.src = imgSrc;
+            titleEl.innerText = `หน้าทีม: ${title}`;
+            modal.classList.remove('hidden');
+        }
+
+        function closeImageModal() {
+            document.getElementById('image-modal').classList.add('hidden');
+        }
+
+        // Toast Notification Helper
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = message;
+            if (isError) {
+                toast.classList.remove('border-lr-yellow');
+                toast.classList.add('border-lr-red');
+                toastIcon.className = 'fa-solid fa-circle-exclamation text-lr-red text-xl';
+            } else {
+                toast.classList.remove('border-lr-red');
+                toast.classList.add('border-lr-yellow');
+                toastIcon.className = 'fa-solid fa-circle-check text-lr-yellow text-xl';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // HTML Escape Helper
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+
+</html>
