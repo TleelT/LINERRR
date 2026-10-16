@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการรหัส LINE Rangers - เติ้ลใจเกเร</title>
+    <title>ระบบจัดการรหัส LINE Rangers</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -109,7 +109,7 @@
                         LINE Rangers <span
                             class="text-xs bg-lr-orange text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider font-semibold">Manager</span>
                     </h1>
-                    <p class="text-xs text-gray-300">คลังบันทึกไอดีเกม LINE Rangers ส่วนตัวของเติ้ลสุดเก🤫 </p>
+                    <p class="text-xs text-gray-300">คลังบันทึกไอดีเกม LINE Rangers</p>
                 </div>
             </div>
 
@@ -165,7 +165,7 @@
                     <label class="text-xs text-gray-400">เรียงตาม:</label>
                     <select id="sort-select" onchange="filterAccounts()"
                         class="bg-lr-darkbrown border border-lr-brown text-lr-yellow text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-lr-yellow">
-                        <option value="custom">ลำดับที่จัดเอง (กดปุ่มสลับซ้าย-ขวา)</option>
+                        <option value="custom">ลำดับที่จัดเอง (เลือกตัวเลขสลับตำแหน่งได้ทันที)</option>
                         <option value="newest">อัปเดตล่าสุด</option>
                         <option value="oldest">เก่าสุด</option>
                         <option value="name">ชื่อรหัส (ก-ฮ)</option>
@@ -464,7 +464,7 @@
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
                             
                             <div class="absolute bottom-2 right-2 bg-black/70 text-lr-yellow px-2.5 py-1 rounded-lg text-xs flex items-center gap-1 border border-lr-brown">
-                                <i class="fa-solid fa-expand"></i> คลิกขยายรูปหน้าทีม
+                                <i class="fa-solid fa-expand"></i>
                             </div>
                         </div>
 
@@ -520,13 +520,19 @@
 
                         ${isCustomSort ? `
                         <div class="flex justify-between items-center pt-2 border-t border-lr-brown/40 text-xs">
-                            <span class="text-[10px] text-gray-400">ตำแหน่งที่: <strong class="text-lr-yellow">${globalIndex + 1}</strong></span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[11px] text-gray-400">ตำแหน่ง:</span>
+                                <select onchange="jumpAccountPosition(${globalIndex}, this.value)" class="bg-lr-brown border border-lr-orange/60 text-lr-yellow font-bold text-xs rounded px-2 py-1 focus:outline-none focus:border-lr-yellow cursor-pointer" title="คลิกเลือกตำแหน่งที่ต้องการย้ายไปทันที">
+                                    ${generatePositionOptions(globalIndex, accounts.length)}
+                                </select>
+                                <span class="text-[10px] text-gray-400">/ ${accounts.length}</span>
+                            </div>
                             <div class="flex items-center gap-1">
-                                <button onclick="moveAccountPosition(${globalIndex}, -1)" ${globalIndex === 0 ? 'disabled class="opacity-30 cursor-not-allowed px-2.5 py-1 bg-lr-brown rounded text-gray-500"' : 'class="px-2.5 py-1 bg-lr-brown hover:bg-lr-orange hover:text-white text-lr-yellow rounded transition cursor-pointer font-medium"'} title="ย้ายไปซ้าย (ลำดับก่อนหน้า)">
-                                    <i class="fa-solid fa-arrow-left mr-1"></i> ซ้าย
+                                <button onclick="moveAccountPosition(${globalIndex}, -1)" ${globalIndex === 0 ? 'disabled class="opacity-30 cursor-not-allowed px-2 py-1 bg-lr-brown rounded text-gray-500"' : 'class="px-2.5 py-1 bg-lr-brown hover:bg-lr-orange hover:text-white text-lr-yellow rounded transition cursor-pointer font-medium"'} title="ย้ายไปซ้าย (ลำดับก่อนหน้า)">
+                                    <i class="fa-solid fa-arrow-left"></i>
                                 </button>
-                                <button onclick="moveAccountPosition(${globalIndex}, 1)" ${globalIndex === accounts.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed px-2.5 py-1 bg-lr-brown rounded text-gray-500"' : 'class="px-2.5 py-1 bg-lr-brown hover:bg-lr-orange hover:text-white text-lr-yellow rounded transition cursor-pointer font-medium"'} title="ย้ายไปขวา (ลำดับถัดไป)">
-                                    ขวา <i class="fa-solid fa-arrow-right ml-1"></i>
+                                <button onclick="moveAccountPosition(${globalIndex}, 1)" ${globalIndex === accounts.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed px-2 py-1 bg-lr-brown rounded text-gray-500"' : 'class="px-2.5 py-1 bg-lr-brown hover:bg-lr-orange hover:text-white text-lr-yellow rounded transition cursor-pointer font-medium"'} title="ย้ายไปขวา (ลำดับถัดไป)">
+                                    <i class="fa-solid fa-arrow-right"></i>
                                 </button>
                             </div>
                         </div>
@@ -536,6 +542,30 @@
 
                 grid.appendChild(card);
             });
+        }
+
+        // GENERATE POSITION OPTIONS FOR SELECT DROPDOWN
+        function generatePositionOptions(currentIndex, totalCount) {
+            let options = '';
+            for (let i = 0; i < totalCount; i++) {
+                const pos = i + 1;
+                const selected = i === currentIndex ? 'selected' : '';
+                options += `<option value="${i}" ${selected}>${pos}</option>`;
+            }
+            return options;
+        }
+
+        // JUMP TO SPECIFIC POSITION DIRECTLY
+        function jumpAccountPosition(currentIndex, targetIndexStr) {
+            const targetIndex = parseInt(targetIndexStr, 10);
+            if (isNaN(targetIndex) || targetIndex < 0 || targetIndex >= accounts.length || targetIndex === currentIndex) return;
+
+            const itemToMove = accounts.splice(currentIndex, 1)[0];
+            accounts.splice(targetIndex, 0, itemToMove);
+
+            saveToLocalStorage();
+            filterAccounts();
+            showToast(`ย้ายรหัสไปที่ตำแหน่งที่ ${targetIndex + 1} เรียบร้อยแล้วครับ`);
         }
 
         // MOVE POSITION VIA BUTTONS
