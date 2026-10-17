@@ -107,7 +107,7 @@
                 <div>
                     <h1 class="text-xl sm:text-2xl font-bold text-lr-yellow tracking-wide flex items-center gap-2">
                         LINE Rangers <span
-                            class="text-xs bg-lr-orange text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider font-semibold">Manager</span>
+                            class="text-xs bg-lr-orange text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider font-semibold">ยินดีต้อนรับ</span>
                     </h1>
                     <p class="text-xs text-gray-300">คลังบันทึกไอดีเกม LINE Rangers</p>
                 </div>
@@ -190,8 +190,8 @@
                 class="w-24 h-24 mx-auto bg-lr-darkbrown/80 rounded-full flex items-center justify-center text-5xl text-lr-yellow border-2 border-lr-orange/40 mb-4 shadow-xl">
                 <i class="fa-solid fa-folder-plus"></i>
             </div>
-            <h3 class="text-xl font-bold text-lr-yellow mb-2">ยังไม่มีข้อมูลรหัสเกมของคุณเติ้ล</h3>
-            <p class="text-sm text-gray-300 max-w-md mx-auto mb-6">คลังไอดีเกมLINE RangersของTle</p>
+            <h3 class="text-xl font-bold text-lr-yellow mb-2">ยังไม่มีข้อมูลรหัสเกม</h3>
+            <p class="text-sm text-gray-300 max-w-md mx-auto mb-6">คลังไอดีเกมLINE Rangers</p>
             <button onclick="openModal()"
                 class="lr-gradient-btn text-lr-brown font-bold px-6 py-3 rounded-2xl inline-flex items-center gap-2 text-base cursor-pointer">
                 <i class="fa-solid fa-plus-circle text-xl"></i>
@@ -236,24 +236,24 @@
                     <div>
                         <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">ชื่อรหัส <span
                                 class="text-lr-red">*</span></label>
-                        <input type="text" id="acc-name" required placeholder="เช่น เติ้ล 01"
+                        <input type="text" id="acc-name" required placeholder=""
                             class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">เลเวล / ยศ</label>
-                        <input type="text" id="acc-level" placeholder="เช่น ป้ายเหลือง 87"
+                        <input type="text" id="acc-level" placeholder=""
                             class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-lr-ruby uppercase mb-1"><i
                                 class="fa-solid fa-gem mr-1"></i>รูบี้ (Ruby)</label>
-                        <input type="number" id="acc-ruby" placeholder="เช่น 1645" min="0"
+                        <input type="number" id="acc-ruby" placeholder="" min="0"
                             class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-sky-400 uppercase mb-1"><i
                                 class="fa-solid fa-ticket mr-1"></i>ตั๋ว Gacha</label>
-                        <input type="number" id="acc-ticket" placeholder="เช่น 50" min="0"
+                        <input type="number" id="acc-ticket" placeholder="" min="0"
                             class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
                     </div>
                 </div>
@@ -293,13 +293,13 @@
                     <div>
                         <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">เรนเจอร์ตัวหลักในทีม
                             (ขั้นด้วยเครื่องหมาย ,)</label>
-                        <input type="text" id="acc-rangers" placeholder="เช่น บราวน์เทพเจ้า, แซลลี่เวทมนตร์"
+                        <input type="text" id="acc-rangers" placeholder=""
                             class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">แท็กหมวดหมู่
                             (ขั้นด้วยเครื่องหมาย ,)</label>
-                        <input type="text" id="acc-tags" placeholder="เช่น รหัสหลัก, รหัสฟาร์ม, PvP Top 100"
+                        <input type="text" id="acc-tags" placeholder=""
                             class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm">
                     </div>
                 </div>
@@ -307,7 +307,7 @@
                 <!-- Notes Row -->
                 <div>
                     <label class="block text-xs font-semibold text-lr-yellow uppercase mb-1">บันทึกเพิ่มเติม</label>
-                    <textarea id="acc-notes" rows="2" placeholder="เช่น LINE ID / รหัสผ่าน หรือหมายเหตุเพิ่มเติม..."
+                    <textarea id="acc-notes" rows="2" placeholder=""
                         class="w-full px-3.5 py-2 bg-lr-darkbrown border border-lr-brown rounded-xl text-white focus:outline-none focus:border-lr-yellow text-sm resize-none"></textarea>
                 </div>
 
@@ -394,7 +394,7 @@
                 return true;
             } catch (e) {
                 if (e.name === 'QuotaExceededError' || e.code === 22) {
-                    showToast('หน่วยความจำเต็ม! รูปภาพไฟล์ใหญ่เกินไป กรุณาย่อขนาดหรือเลือกภาพที่มีขนาดเล็กลง', true);
+                    showToast('อัปโหลดสำเร็จ', true);
                 } else {
                     showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', true);
                 }
